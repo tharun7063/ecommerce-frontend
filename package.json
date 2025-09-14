@@ -1,7 +1,7 @@
 {
   "name": "my-ecommerce",
   "private": true,
-  "homepage": "https://tharun7063.github.io/ecommerce-frontend",
+  "homepage": "https://tharun7063.github.io/ecommerce-frontend/",
   "version": "0.0.0",
   "type": "module",
   "scripts": {
