@@ -1,7 +1,7 @@
 import { create } from "zustand";
 
 const useStore = create((set) => ({
-    backend_url: "http://localhost:3000",
+    backend_url: "https://ecommerce-backend-ofi8.onrender.com",
 
     // Auth state
     user: JSON.parse(localStorage.getItem("user")) || null,
