@@ -134,27 +134,20 @@ export default function LoginPage() {
             }
             if (action === "sign_in") {
                 // Login flow
-                console.log("🔹 Sign-in Response:", data);
+                console.log("Sign-in Response:", data);
                 if (data.success && data.user && data.jwt_token && data.refresh_token) {
-                    setAuth(data.user, data.jwt_token);
-                    localStorage.setItem("refresh_token", data.refresh_token);
-                    // Save user details (optional)
-                    localStorage.setItem("user", JSON.stringify(data.user));
-                    console.log("✅ Login successful!");
-                    console.log("🔹 User Info:", data.user);
-                    console.log("🔹 JWT Token:", data.jwt_token);
-                    console.log("🔹 Refresh Token:", data.refresh_token);
-                    // Redirect after success
-                    navigate("/", { replace: true });
+                setAuth(data.user, data.jwt_token, data.refresh_token); 
+                console.log("Login successful!");
+                navigate("/", { replace: true });
                 } else {
-                    console.error("❌ Login failed:", data.message || "Invalid credentials");
+                    console.error("Login failed:", data.message || "Invalid credentials");
                     setError(data.message || "Invalid credentials");
                 }
             } else {
                 // Signup flow
                 if (data.success && data.user && data.jwt_token && data.refresh_token) {
-                    // Some backends might directly return token on signup
-                    localStorage.setItem("auth_token", data.refresh_token);
+                    setAuth(data.user, data.jwt_token, data.refresh_token); 
+                    console.log("Login successful!");
                     navigate("/", { replace: true });
                 } else if (data.user && data.user.auth_type === "otp") {
                     setShowOtpInput(true);
@@ -198,19 +191,19 @@ export default function LoginPage() {
             const data = await res.json();
             console.log("🔹 Parsed Response Data:", data);
             if (!res.ok) {
-                console.error("❌ OTP Verify Failed:", data.error || "OTP verification failed");
+                console.error("OTP Verify Failed:", data.error || "OTP verification failed");
                 throw new Error(data.error || "OTP verification failed");
             }
-            if (data.success && data.user && data.jwt_token) {
-                setAuth(data.user, data.jwt_token);
-                localStorage.setItem("refresh_token", data.refresh_token);
+            if (data.success && data.user && data.jwt_token && data.refresh_token) {
+                setAuth(data.user, data.jwt_token, data.refresh_token); 
+                console.log("Login successful!");
                 navigate("/", { replace: true });
             }
         } catch (err) {
-            console.error("🚨 OTP Verify Error:", err);
+            console.error("OTP Verify Error:", err);
             setError(err.message);
         } finally {
-            console.log("🔹 OTP Verify process finished.");
+            console.log("OTP Verify process finished.");
             setVerifying(false);
         }
     }

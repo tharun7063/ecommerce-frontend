@@ -23,6 +23,8 @@ export default function ProductsPage() {
         return res.json();
       })
       .then((data) => {
+        console.log("product data: ", data);
+        
         setProducts(data.data);
         setLoading(false);
       })

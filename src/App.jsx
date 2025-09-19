@@ -1,6 +1,7 @@
 // App.js
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Routes, Route } from "react-router-dom";
+import useStore from "./store/useStore";
 import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
 import LoginPage from "./pages/Login";
@@ -13,6 +14,16 @@ import Orders from "./pages/Orders";
 // import Wishlist from "./pages/Wishlist";
 
 function App() {
+  const refreshAuth = useStore((state) => state.refreshAuth);
+
+  useEffect(() => {
+    refreshAuth();
+    const interval = setInterval(() => {
+      refreshAuth();
+    }, 13 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, [refreshAuth]);
+
   return (
     <>
       <Navbar />

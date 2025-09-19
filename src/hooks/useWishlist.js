@@ -1,8 +1,17 @@
 // hooks/useWishlist.js
 import { useState } from "react";
+import useStore from "../store/useStore"; // import your zustand store
 
-export default function useWishlist(backend_url, user) {
+export default function useWishlist(backend_url) {
+  const { user, token } = useStore();
   const [wishlist, setWishlist] = useState({}); // productId -> uid
+
+  if (!user || !token) throw new Error("Authentication required");
+
+  const headers = {
+    "Content-Type": "application/json",
+    "Authorization": `Bearer ${token}`, // <-- add token
+  };
 
   // Add product to wishlist
   const addToWishlist = async (product) => {
@@ -12,9 +21,11 @@ export default function useWishlist(backend_url, user) {
       variant_id: product.variants?.[0]?.id || null,
     };
 
+    console.log("Wishlist payload being sent:", body);
+
     const res = await fetch(`${backend_url}/wishlist/add`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify(body),
     });
 
@@ -31,6 +42,7 @@ export default function useWishlist(backend_url, user) {
 
     const res = await fetch(`${backend_url}/wishlist/${wishlist[productId]}`, {
       method: "DELETE",
+      headers,
     });
 
     if (!res.ok) throw new Error("Failed to remove from wishlist");

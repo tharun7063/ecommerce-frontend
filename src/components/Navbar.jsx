@@ -1,6 +1,14 @@
 import React, { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBars, faXmark, faShoppingCart, faEllipsisV, faUser } from "@fortawesome/free-solid-svg-icons";
+import {
+  faBars,
+  faXmark,
+  faShoppingCart,
+  faEllipsisV,
+  faUser,
+  faBell,
+  faHeart,
+} from "@fortawesome/free-solid-svg-icons";
 import { NavLink, Link, useLocation } from "react-router-dom";
 import logo from "../assets/logo.svg";
 import useStore from "../store/useStore";
@@ -14,14 +22,14 @@ const navLinks = [
 export default function Navbar() {
   const { user } = useStore();
   const [isOpen, setIsOpen] = useState(false);
+  const [showMore, setShowMore] = useState(false); // for 3-dots dropdown
   const [search, setSearch] = useState("");
   const location = useLocation();
 
   // Sidebar paths for active profile highlighting
   const sidebarPaths = ["/account", "/orders", "/payments", "/wishlist"];
-  const isProfileActive = user && sidebarPaths.some((path) =>
-    location.pathname.startsWith(path)
-  );
+  const isProfileActive =
+    user && sidebarPaths.some((path) => location.pathname.startsWith(path));
 
   return (
     <nav className="bg-white shadow-md fixed w-full z-50">
@@ -86,10 +94,42 @@ export default function Navbar() {
               <FontAwesomeIcon icon={faUser} size="lg" />
             </NavLink>
 
-            {/* More Options */}
-            <button className="text-gray-700 hover:text-blue-600">
-              <FontAwesomeIcon icon={faEllipsisV} size="lg" />
-            </button>
+            {/* More Options (3 dots) */}
+            <div className="relative">
+              <button
+                onClick={() => setShowMore(!showMore)}
+                className="text-gray-700 hover:text-blue-600"
+              >
+                <FontAwesomeIcon icon={faEllipsisV} size="lg" />
+              </button>
+
+              {/* Dropdown */}
+              {showMore && (
+                <div className="absolute right-0 mt-2 w-40 bg-white rounded-md shadow-lg py-2 z-50">
+                  {/* Notifications - always show */}
+                  <Link
+                    to="/notifications"
+                    className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100"
+                    onClick={() => setShowMore(false)}
+                  >
+                    <FontAwesomeIcon icon={faBell} className="mr-2" />
+                    Notifications
+                  </Link>
+
+                  {/* Wishlist - only if user logged in */}
+                  {user && (
+                    <Link
+                      to="/wishlist"
+                      className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100"
+                      onClick={() => setShowMore(false)}
+                    >
+                      <FontAwesomeIcon icon={faHeart} className="mr-2" />
+                      Wishlist
+                    </Link>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Mobile Hamburger */}
@@ -138,10 +178,22 @@ export default function Navbar() {
             <Link to="/cart" className="text-gray-700 hover:text-blue-600">
               <FontAwesomeIcon icon={faShoppingCart} size="lg" />
             </Link>
-            <Link to={user ? "/account" : "/login"} className="text-gray-700 hover:text-blue-600">
+            <Link
+              to={user ? "/account" : "/login"}
+              className="text-gray-700 hover:text-blue-600"
+            >
               <FontAwesomeIcon icon={faUser} size="lg" />
             </Link>
-            <FontAwesomeIcon icon={faEllipsisV} className="text-gray-700 hover:text-blue-600" size="lg" />
+            {/* Notifications always */}
+            <Link to="/notifications" className="text-gray-700 hover:text-blue-600">
+              <FontAwesomeIcon icon={faBell} size="lg" />
+            </Link>
+            {/* Wishlist only if logged in */}
+            {user && (
+              <Link to="/wishlist" className="text-gray-700 hover:text-blue-600">
+                <FontAwesomeIcon icon={faHeart} size="lg" />
+              </Link>
+            )}
           </div>
         </div>
       </div>
