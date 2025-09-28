@@ -1,3 +1,15 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+
+/* Swiper pagination bullets orange */
+.swiper .swiper-pagination-bullet {
+  background-color: #fff; /* Tailwind orange-500 */
+  opacity: 0.7;
+}
+
+.swiper .swiper-pagination-bullet-active {
+  background-color: #f97316; /* Tailwind orange-500 */
+  opacity: 1;
+}

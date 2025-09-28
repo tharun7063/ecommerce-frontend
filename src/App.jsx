@@ -1,49 +1,66 @@
-// App.js
-import React, { useState, useEffect, useRef } from "react";
-import { Routes, Route } from "react-router-dom";
-import useStore from "./store/useStore";
-import Navbar from "./components/Navbar";
+import React, { useEffect } from "react";
+import { Routes, Route, Navigate, Outlet } from "react-router-dom";
+import Layout from "./components/Navbar";
 import Home from "./pages/Home";
+import CartPage from "./pages/Cart";
 import LoginPage from "./pages/Login";
-import SidebarLayout from "./components/SidebarLayout";
-import ProductsPage from "./pages/Products";
 
-import Account from "./pages/Account";
-import Orders from "./pages/Orders";
-// import Payments from "./pages/Payments";
-// import Wishlist from "./pages/Wishlist";
+import Dashboard from "./admin/Dashboard";
+import UserList from "./admin/users/UserList";
+import UserDetailsEdit from "./admin/users/UserDetailsEdit";
+import ProductList from "./admin/product/ProductList";
+import AddProduct from "./admin/product/AddProduct";
+import AdminWrapper from "./utils/AdminWrapper";
+import RoleRedirect from "./utils/RoleRedirect";
+import useStore from "./store/useStore";
 
 function App() {
   const refreshAuth = useStore((state) => state.refreshAuth);
 
   useEffect(() => {
-    refreshAuth();
-    const interval = setInterval(() => {
-      refreshAuth();
-    }, 13 * 60 * 1000);
+    // Refresh immediately and then every 14 minutes
+    const refreshTokenPeriodically = async () => {
+      try {
+        const newToken = await refreshAuth();
+        if (newToken) console.log("New JWT generated:", newToken);
+      } catch (err) {
+        console.error("Error refreshing token:", err);
+      }
+    };
+
+    refreshTokenPeriodically();
+    const interval = setInterval(refreshTokenPeriodically, 14 * 60 * 1000);
+
     return () => clearInterval(interval);
   }, [refreshAuth]);
 
   return (
-    <>
-      <Navbar />
-      <div className="pt-20 px-4">
-        <Routes>
-          {/* Public routes */}
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<LoginPage />} />
+    <Routes>
+      {/* Public / customer routes, redirect admin away */}
+      <Route element={<RoleRedirect />}>
+        <Route path="/" element={<Layout />}>
+          <Route index element={<Home />} />
+          <Route path="cart" element={<CartPage />} />
+        </Route>
+      </Route>
 
-          {/* Sidebar routes */}
-          <Route element={<SidebarLayout />}>
-            <Route path="/account" element={<Account />} />
-            <Route path="orders" element={<Orders />} />
-            {/* // <Route path="payments" element={<Payments />} />
-            // <Route path="wishlist" element={<Wishlist />} />  */}
-          </Route>
-          <Route path="/products" element={<ProductsPage />} />
-        </Routes>
-      </div>
-    </>
+      {/* Admin routes */}
+      <Route path="/admin" element={<AdminWrapper />}>
+        <Route element={<Layout />}>
+          <Route index element={<Dashboard />} />
+          <Route path="user" element={<UserList />} />
+          <Route path="user/:uid" element={<UserDetailsEdit />} />
+          <Route path="product" element={<ProductList />} />
+          <Route path="addproduct" element={<AddProduct/>}/>
+        </Route>
+      </Route>
+
+      {/* Login */}
+      <Route path="/login" element={<LoginPage />} />
+
+      {/* Catch-all */}
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 }
 

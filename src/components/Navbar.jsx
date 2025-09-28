@@ -1,210 +1,193 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
+import { useNavigate, Outlet, useLocation } from "react-router-dom";
+import logo from "../assets/logo.png";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faBars,
-  faXmark,
-  faShoppingCart,
-  faEllipsisV,
-  faUser,
-  faBell,
-  faHeart,
+  faCartPlus,
+  faUserPlus,
+  faCircleUser,
+  faRightFromBracket,
 } from "@fortawesome/free-solid-svg-icons";
-import { NavLink, Link, useLocation } from "react-router-dom";
-import logo from "../assets/logo.svg";
-import useStore from "../store/useStore";
 
-const navLinks = [
-  { title: "Home", url: "/" },
-  { title: "Products", url: "/products" },
-  { title: "Categories", url: "/categories" },
-];
-
-export default function Navbar() {
-  const { user } = useStore();
-  const [isOpen, setIsOpen] = useState(false);
-  const [showMore, setShowMore] = useState(false); // for 3-dots dropdown
-  const [search, setSearch] = useState("");
+const Layout = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const dropdownRef = useRef(null);
+  const bgColor = "bg-[#f8f8f8]";
 
-  // Sidebar paths for active profile highlighting
-  const sidebarPaths = ["/account", "/orders", "/payments", "/wishlist"];
-  const isProfileActive =
-    user && sidebarPaths.some((path) => location.pathname.startsWith(path));
+  const [cartCount, setCartCount] = useState(3);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) setUser(JSON.parse(storedUser));
+  }, []);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
+    setUser(null);
+    setDropdownOpen(false);
+    navigate("/login");
+  };
+
+  // Sidebar links
+  const defaultLinks = [
+    { label: "Brands", path: "/brands" },
+    { label: "Products", path: "/products" },
+    { label: "Categories", path: "/categories" },
+  ];
+
+  const adminLinks = [
+    { label: "Users", path: "/admin/user" },
+    { label: "Products", path: "/admin/product" },
+  ];
+
+  const isAdmin = user?.role_name === "admin";
+  const isCustomer = !user || user.role_name === "customer";
+
+  const links = isAdmin ? adminLinks : defaultLinks;
+
+  const getLinkClasses = (isActive) =>
+    `text-left px-3 py-2 rounded ${
+      isActive ? "bg-orange-500 text-white font-semibold" : "hover:bg-orange-100"
+    }`;
 
   return (
-    <nav className="bg-white shadow-md fixed w-full z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16 items-center">
-          {/* Logo */}
-          <div className="flex-shrink-0">
-            <NavLink to="/">
-              <img src={logo} alt="MyBrand Logo" className="h-20 w-auto" />
-            </NavLink>
+    <div className="flex h-screen m-0 overflow-hidden">
+      {/* Sidebar */}
+      <div
+        className={`w-[200px] flex-none border-r border-gray-300 pr-5 flex flex-col gap-5 ${bgColor}`}
+      >
+        <div
+          className="flex items-center gap-1 mb-2 cursor-pointer"
+          onClick={() => navigate(isAdmin ? "/admin" : "/")}
+        >
+          <img src={logo} alt="Project Logo" className="w-[100px]" />
+          <div className="flex flex-col leading-none">
+            <span className="font-bold text-lg">E - com</span>
+            <span className="text-sm text-gray-600">Platform</span>
           </div>
+        </div>
 
-          {/* Center Menu */}
-          <div className="hidden md:flex flex-1 justify-center space-x-6">
-            {navLinks.map((link) => (
-              <NavLink
-                key={link.title}
-                to={link.url}
-                className={({ isActive }) =>
-                  isActive
-                    ? "text-blue-600 font-semibold"
-                    : "text-gray-700 hover:text-blue-600"
-                }
+        {/* Sidebar links */}
+        <div className="flex flex-col gap-2">
+          {links.map((link) => {
+            const isActive = location.pathname.startsWith(link.path);
+            return (
+              <button
+                key={link.path}
+                className={getLinkClasses(isActive)}
+                onClick={() => navigate(link.path)}
               >
-                {link.title}
-              </NavLink>
-            ))}
-          </div>
+                {link.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
-          {/* Right Side */}
-          <div className="hidden md:flex items-center space-x-10">
-            {/* Search */}
-            <div className="relative">
+      {/* Main content */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Top bar */}
+        <div
+          className={`h-[60px] border-b border-gray-300 flex items-center justify-between px-5 ${bgColor}`}
+        >
+          {isCustomer && (
+            <>
               <input
                 type="text"
                 placeholder="Search..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="px-3 py-1 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full max-w-md px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-orange-400"
               />
-            </div>
-
-            {/* Cart */}
-            <NavLink
-              to="/cart"
-              className={({ isActive }) =>
-                isActive ? "text-blue-600" : "text-gray-700 hover:text-blue-600"
-              }
-            >
-              <FontAwesomeIcon icon={faShoppingCart} size="lg" />
-            </NavLink>
-
-            {/* Profile */}
-            <NavLink
-              to={user ? "/account" : "/login"}
-              className={() =>
-                isProfileActive
-                  ? "text-blue-600"
-                  : "text-gray-700 hover:text-blue-600"
-              }
-            >
-              <FontAwesomeIcon icon={faUser} size="lg" />
-            </NavLink>
-
-            {/* More Options (3 dots) */}
-            <div className="relative">
-              <button
-                onClick={() => setShowMore(!showMore)}
-                className="text-gray-700 hover:text-blue-600"
-              >
-                <FontAwesomeIcon icon={faEllipsisV} size="lg" />
-              </button>
-
-              {/* Dropdown */}
-              {showMore && (
-                <div className="absolute right-0 mt-2 w-40 bg-white rounded-md shadow-lg py-2 z-50">
-                  {/* Notifications - always show */}
-                  <Link
-                    to="/notifications"
-                    className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100"
-                    onClick={() => setShowMore(false)}
-                  >
-                    <FontAwesomeIcon icon={faBell} className="mr-2" />
-                    Notifications
-                  </Link>
-
-                  {/* Wishlist - only if user logged in */}
-                  {user && (
-                    <Link
-                      to="/wishlist"
-                      className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100"
-                      onClick={() => setShowMore(false)}
-                    >
-                      <FontAwesomeIcon icon={faHeart} className="mr-2" />
-                      Wishlist
-                    </Link>
-                  )}
+              <div className="flex items-center gap-5 ml-5 relative">
+                <div
+                  className="relative cursor-pointer"
+                  onClick={() => navigate("/cart")}
+                >
+                  <FontAwesomeIcon
+                    icon={faCartPlus}
+                    className="text-gray-700 text-2xl"
+                  />
+                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
+                    {cartCount}
+                  </span>
                 </div>
-              )}
-            </div>
-          </div>
+              </div>
+            </>
+          )}
 
-          {/* Mobile Hamburger */}
-          <div className="md:hidden">
-            <button
-              onClick={() => setIsOpen(!isOpen)}
-              className="text-gray-700 hover:text-blue-600 focus:outline-none"
-            >
-              <FontAwesomeIcon icon={isOpen ? faXmark : faBars} size="lg" />
-            </button>
-          </div>
-        </div>
-      </div>
+          {isAdmin && (
+            <h1 className="text-xl font-semibold text-gray-700">Dashboard</h1>
+          )}
 
-      {/* Mobile Slide-in Menu */}
-      <div
-        className={`fixed top-0 right-0 h-full w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out
-          ${isOpen ? "translate-x-0" : "translate-x-full"}`}
-      >
-        <div className="p-4 flex flex-col space-y-4">
-          {navLinks.map((link) => (
-            <NavLink
-              key={link.title}
-              to={link.url}
-              onClick={() => setIsOpen(false)}
-              className={({ isActive }) =>
-                isActive
-                  ? "text-blue-600 font-semibold"
-                  : "text-gray-700 hover:text-blue-600"
-              }
-            >
-              {link.title}
-            </NavLink>
-          ))}
+          {/* Account dropdown */}
+          <div className="relative ml-auto" ref={dropdownRef}>
+            {user ? (
+              <FontAwesomeIcon
+                icon={faCircleUser}
+                style={{ color: "#ea781a" }}
+                className="cursor-pointer text-2xl"
+                onClick={() => setDropdownOpen(!dropdownOpen)}
+              />
+            ) : (
+              <FontAwesomeIcon
+                icon={faUserPlus}
+                className="cursor-pointer text-2xl text-black"
+                onClick={() => setDropdownOpen(!dropdownOpen)}
+              />
+            )}
 
-          <input
-            type="text"
-            placeholder="Search..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-
-          {/* Mobile Icons */}
-          <div className="flex items-center space-x-4 mt-2">
-            <Link to="/cart" className="text-gray-700 hover:text-blue-600">
-              <FontAwesomeIcon icon={faShoppingCart} size="lg" />
-            </Link>
-            <Link
-              to={user ? "/account" : "/login"}
-              className="text-gray-700 hover:text-blue-600"
-            >
-              <FontAwesomeIcon icon={faUser} size="lg" />
-            </Link>
-            {/* Notifications always */}
-            <Link to="/notifications" className="text-gray-700 hover:text-blue-600">
-              <FontAwesomeIcon icon={faBell} size="lg" />
-            </Link>
-            {/* Wishlist only if logged in */}
-            {user && (
-              <Link to="/wishlist" className="text-gray-700 hover:text-blue-600">
-                <FontAwesomeIcon icon={faHeart} size="lg" />
-              </Link>
+            {dropdownOpen && (
+              <div className="absolute right-0 mt-2 w-36 bg-white border rounded-md shadow-lg z-10">
+                {user ? (
+                  <button
+                    onClick={handleLogout}
+                    className="w-full flex items-center gap-2 text-left px-4 py-2 hover:bg-orange-100 text-red-600"
+                  >
+                    <FontAwesomeIcon
+                      icon={faRightFromBracket}
+                      style={{ color: "#e3372b" }}
+                    />
+                    Logout
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setDropdownOpen(false);
+                      navigate("/login");
+                    }}
+                    className="w-full flex items-center gap-2 text-left px-4 py-2 hover:bg-orange-100 text-black"
+                  >
+                    <FontAwesomeIcon icon={faRightFromBracket} />
+                    Login
+                  </button>
+                )}
+              </div>
             )}
           </div>
         </div>
-      </div>
 
-      {/* Overlay */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-black opacity-30"
-          onClick={() => setIsOpen(false)}
-        ></div>
-      )}
-    </nav>
+        {/* Page content */}
+        <div className="flex-1 p-5 bg-[#f0f2f5] overflow-y-auto min-w-0">
+          <Outlet />
+        </div>
+      </div>
+    </div>
   );
-}
+};
+
+export default Layout;

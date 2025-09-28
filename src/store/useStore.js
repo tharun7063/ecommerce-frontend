@@ -39,19 +39,18 @@ const useStore = create((set, get) => ({
       if (!res.ok) throw new Error("Failed to refresh token");
       const data = await res.json();
       console.log("refresh data:", data);
-      
 
-      if (data.jwt_token) {
+      if (data.accessToken) {
         localStorage.setItem("auth_token", data.accessToken);
         set({ token: data.accessToken });
 
-        if (data.refresh_token) {
+        if (data.refreshToken) {
           localStorage.setItem("refresh_token", data.refreshToken);
           set({ refreshToken: data.refreshToken });
         }
 
         console.log("Token refreshed");
-        return data.jwt_token;
+        return data.accessToken;
       }
     } catch (err) {
       console.error("Refresh token failed", err);

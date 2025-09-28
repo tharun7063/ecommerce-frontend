@@ -1,19 +1,11 @@
 import React, { useState, useEffect } from "react";
 import useStore from "../store/useStore";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faHeart as faHeartSolid } from "@fortawesome/free-solid-svg-icons";
-import { faHeart as faHeartRegular } from "@fortawesome/free-regular-svg-icons";
-import useWishlist from "../hooks/useWishlist";
 
 export default function ProductsPage() {
   const backend_url = useStore((state) => state.backend_url);
-  const user = useStore((state) => state.user);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  // use reusable wishlist hook
-  const { wishlist, toggleWishlist } = useWishlist(backend_url, user);
 
   // Fetch products
   useEffect(() => {
@@ -24,7 +16,6 @@ export default function ProductsPage() {
       })
       .then((data) => {
         console.log("product data: ", data);
-        
         setProducts(data.data);
         setLoading(false);
       })
@@ -61,22 +52,6 @@ export default function ProductsPage() {
                 key={product.id}
                 className="relative min-w-[200px] border rounded-lg p-3 shadow hover:shadow-lg transition"
               >
-                {/* Wishlist Heart */}
-                <button
-                  onClick={() => toggleWishlist(product)}
-                  className="absolute top-2 right-2"
-                >
-                  <FontAwesomeIcon
-                    icon={wishlist[product.id] ? faHeartSolid : faHeartRegular}
-                    size="lg"
-                    className={
-                      wishlist[product.id]
-                        ? "text-red-500"
-                        : "text-gray-500 hover:text-red-400"
-                    }
-                  />
-                </button>
-
                 <img
                   src={
                     product.images?.find((img) => img.type === "image")?.url ||
