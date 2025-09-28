@@ -1,7 +1,8 @@
 import { create } from "zustand";
 
 const useStore = create((set, get) => ({
-  backend_url: "http://localhost:3000",
+  // backend_url: "http://localhost:3000",
+  backend_url: "https://tharun7063.github.io",
 
   // Auth state
   user: JSON.parse(localStorage.getItem("user")) || null,
